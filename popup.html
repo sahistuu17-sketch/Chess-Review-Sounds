@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="popup.css">
+  <title>Chess Review Sounds</title>
+</head>
+<body>
+  <header>
+    <h1>Review sounds</h1>
+    <label class="switch"><input type="checkbox" id="enabled"><span>On</span></label>
+  </header>
+  <section class="controls">
+    <label>Volume <input type="range" id="volume" min="0" max="1" step="0.05"></label>
+    <label>Default max length (s) <input type="number" id="maxSeconds" min="0" max="30" step="1"></label>
+  </section>
+  <ul id="rows"></ul>
+  <section class="pack">
+    <button id="export">Export pack</button>
+    <button id="import">Import pack</button>
+    <input type="file" id="importFile" accept="application/json">
+  </section>
+  <p class="hint" id="msg">Pick an audio file for each move type. Start and length trim the clip. Files stay on your device.</p>
+  <script src="popup.js"></script>
+</body>
+</html>
