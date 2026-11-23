@@ -32,35 +32,39 @@
   };
 
   // Reads the classification of the currently selected move in the move list.
-  // Returns { type, key } where type may be null for unclassified moves.
+  // Returns { node, type, why } where type is null for unclassified moves.
   function detect() {
-    const sel = document.querySelector('.node-highlight-content.selected');
+    // Prefer the selected move inside the move list (it has a data-node ancestor).
+    const sel = document.querySelector('[data-node] .node-highlight-content.selected')
+      || document.querySelector('.node-highlight-content.selected');
     if (!sel) return null;
     const node = sel.closest('[data-node]');
-    const key = node ? node.getAttribute('data-node') : sel.textContent.trim();
+    const nodeKey = node ? node.getAttribute('data-node') : sel.textContent.trim();
 
     // 1) inline style: color: var(--color-classification-brilliant)
     let raw = null;
+    let source = '';
     const m = /--color-classification-([a-z-]+)/i.exec(sel.getAttribute('style') || '');
-    if (m) raw = m[1];
+    if (m) { raw = m[1]; source = 'style'; }
 
     // 2) fallback: annotation icon <g id="Brilliant">
     if (!raw && node) {
       const g = node.querySelector('.node-annotation-icon g[id]');
-      if (g) raw = g.id;
+      if (g) { raw = g.id; source = 'icon'; }
     }
 
     const type = normalize(raw);
     if (raw && !TYPES.includes(type)) {
       log('Unknown classification name (tell the developer):', raw);
-      return { type: null, key };
+      return { nodeKey, type: null, source: 'unknown:' + raw };
     }
-    return { type: raw ? type : null, key };
+    return { nodeKey, type: raw ? type : null, source, sel };
   }
 
   function play(type) {
     const src = sounds[type];
-    if (!settings.enabled || !src) return;
+    if (!settings.enabled) { log('Skipped: extension is switched off in the popup'); return; }
+    if (!src) { log('Skipped: no sound set for', type); return; }
     if (current) current.pause();
     const trim = trims[type] || {};
     const start = Number(trim.start) || 0;
@@ -74,23 +78,35 @@
         if (length > 0) setTimeout(() => { if (current === audio) audio.pause(); }, length * 1000);
       }).catch((e) => log('Playback blocked:', e.message));
     }, { once: true });
+    audio.addEventListener('error', () => log('Audio error for', type));
   }
 
   function tick() {
     if (!isReviewPage()) return;
     const found = detect();
-    if (!found || found.key === lastKey) return;
-    lastKey = found.key; // also updated for unclassified moves, so returning to a move replays it
-    log('Move', found.key, '->', found.type || 'no classification');
-    if (found.type) play(found.type);
+    if (!found) return;
+    // The key includes the classification, so a classification that shows up a moment
+    // after the move was selected still plays, and the same state never plays twice.
+    const key = found.nodeKey + '|' + (found.type || '-');
+    if (key === lastKey) return;
+    lastKey = key;
+    if (found.type) {
+      log('Move', found.nodeKey, '->', found.type, '(from ' + found.source + ')');
+      play(found.type);
+    } else {
+      const style = found.sel ? (found.sel.getAttribute('style') || '(none)') : '';
+      log('Move', found.nodeKey, '-> no classification found', found.source || '', 'style=' + style);
+    }
   }
 
+  // Throttle instead of debounce: the first mutation schedules a check, further
+  // mutations do not postpone it, so constant page animations cannot starve it.
   const observer = new MutationObserver(() => {
-    clearTimeout(timer);
-    timer = setTimeout(tick, 100); // debounce
+    if (timer) return;
+    timer = setTimeout(() => { timer = null; tick(); }, 80);
   });
   observer.observe(document.body, {
-    childList: true, subtree: true, attributes: true, attributeFilter: ['class'],
+    childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'style'],
   });
   log('loaded on', location.pathname);
 })();

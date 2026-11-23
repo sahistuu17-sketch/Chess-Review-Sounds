@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Chess Review Sounds",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Play your own sounds for each move type (Brilliant, Blunder, ...) while reviewing games on chess.com.",
   "permissions": [
     "storage",
