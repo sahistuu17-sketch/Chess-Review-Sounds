@@ -20,3 +20,6 @@ while you review games on chess.com. Only runs on analysis/review pages, never d
 - [ ] TypeScript + React popup, tests for the detection logic
 - [ ] Built-in royalty-free default pack
 - [ ] Chrome Web Store release
+
+## Tip
+If chess.com's own move sounds overlap with yours, turn them off in chess.com's sound settings or mute the tab (right-click the tab, Mute site).
