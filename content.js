@@ -1,8 +1,9 @@
 // Chess Review Sounds - content script
-// Plays a user-chosen sound when the selected move in analysis/review has a given classification.
+// Plays a user-chosen sound when the selected move in analysis/review has a given classification,
+// or a game-end sound on the last move. The detection itself lives in lib/detect.js.
 (() => {
-  const TYPES = ['brilliant', 'great', 'best', 'excellent', 'good', 'book', 'inaccuracy', 'mistake', 'miss', 'blunder'];
-  const ALIASES = { greatfind: 'great', bestmove: 'best' };
+  const { detect, makeKey } = ChessSoundsDetect;
+
   let settings = { enabled: true, volume: 0.8, maxSeconds: 4, debug: false };
   // Logging is off by default; the popup has a "Debug logging" switch for troubleshooting.
   const log = (...a) => { if (settings.debug) console.log('[ChessSounds]', ...a); };
@@ -24,67 +25,6 @@
 
   // Only run on analysis / game review pages, never on live games.
   const isReviewPage = () => /\/analysis|\/review/.test(location.pathname);
-
-  const normalize = (raw) => {
-    const t = String(raw || '').toLowerCase().replace(/[^a-z]/g, '');
-    return ALIASES[t] || t;
-  };
-
-  // Reads the classification of the currently selected move in the move list.
-  // Returns { node, type, why } where type is null for unclassified moves.
-  function detect() {
-    // Prefer the selected move inside the move list (it has a data-node ancestor).
-    const sel = document.querySelector('[data-node] .node-highlight-content.selected')
-      || document.querySelector('.node-highlight-content.selected');
-    if (!sel) return null;
-    const node = sel.closest('[data-node]');
-    const nodeKey = node ? node.getAttribute('data-node') : sel.textContent.trim();
-
-    // 1) inline style: color: var(--color-classification-brilliant)
-    let raw = null;
-    let source = '';
-    const m = /--color-classification-([a-z-]+)/i.exec(sel.getAttribute('style') || '');
-    if (m) { raw = m[1]; source = 'style'; }
-
-    // 2) fallback: annotation icon <g id="Brilliant">
-    if (!raw && node) {
-      const g = node.querySelector('.node-annotation-icon g[id]');
-      if (g) { raw = g.id; source = 'icon'; }
-    }
-
-    // 3) the badge drawn on the destination square of the board: <svg><g id="best">
-    //    (chess.com only colours a few classifications in the move list, but badges every move)
-    if (!raw) {
-      for (const g of document.querySelectorAll('svg g[id]')) {
-        if (g.closest('[data-node]') || g.closest('.highcharts-container')) continue;
-        if (TYPES.includes(normalize(g.id))) { raw = g.id; source = 'board'; break; }
-      }
-    }
-
-    const end = detectEnd(sel, node);
-    const type = normalize(raw);
-    if (raw && !TYPES.includes(type)) {
-      log('Unknown classification name (tell the developer):', raw);
-      return { nodeKey, type: null, source: 'unknown:' + raw, end, sel };
-    }
-    return { nodeKey, type: raw ? type : null, source, end, sel };
-  }
-
-  // Game-end types, only when the selected move is the very last move of the game:
-  //   checkmate: the move ends with "#"
-  //   draw:      the result row reads 1/2-1/2 (stalemate, agreement, repetition, ... look the same here)
-  //   gameover:  decisive result without mate (resignation, timeout, abandonment look the same here)
-  function detectEnd(sel, node) {
-    if (!node) return null;
-    const plies = document.querySelectorAll('.main-line-ply');
-    if (!plies.length || plies[plies.length - 1] !== node) return null;
-    if (/#/.test(sel.textContent || '')) return 'checkmate';
-    const resultEl = document.querySelector('.game-result');
-    const result = resultEl ? (resultEl.textContent || '').trim() : '';
-    if (/1\/2|½/.test(result)) return 'draw';
-    if (/^(1-0|0-1)$/.test(result)) return 'gameover';
-    return null;
-  }
 
   function play(type) {
     const src = sounds[type];
@@ -108,18 +48,14 @@
 
   function tick() {
     if (!isReviewPage()) return;
-    const found = detect();
+    const found = detect(document);
     if (!found) return;
-    // The key includes the classification, so a classification that shows up a moment
-    // after the move was selected still plays, and the same state never plays twice.
     // On the last move of the game a game-end sound (if you set one) replaces the move sound.
-    // Its key ignores the classification, so a late-arriving badge cannot trigger it twice.
     const endSound = found.end && sounds[found.end];
-    const key = endSound
-      ? found.nodeKey + '|end:' + found.end
-      : found.nodeKey + '|' + (found.type || '-');
+    const key = makeKey(found, Boolean(endSound));
     if (key === lastKey) return;
     lastKey = key;
+    if (found.unknown) log('Unknown classification name (tell the developer):', found.unknown);
     if (endSound) {
       log('Move', found.nodeKey, '->', found.end, '(game end)');
       play(found.end);
@@ -127,7 +63,7 @@
       // The board badge can lag a moment behind the selection, so only play it once it
       // has stayed the same for a short while (avoids playing the previous move's badge).
       setTimeout(() => {
-        const again = detect();
+        const again = detect(document);
         if (!again || again.nodeKey !== found.nodeKey || again.type !== found.type) {
           log('Ignored a badge that changed right away:', found.nodeKey, found.type);
           return;

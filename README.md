@@ -71,3 +71,14 @@ Independent project, not affiliated with or endorsed by Chess.com.
 - [ ] Tell stalemate, resignation and timeout apart (the review page does not expose the reason)
 - [ ] TypeScript + React popup, tests for the detection logic
 - [ ] Chrome Web Store release
+
+
+## Development
+
+```bash
+npm install
+npm test           # unit tests for the detection logic (jsdom, fixtures built from real chess.com DOM)
+npm run package    # clean zip for the Chrome Web Store in dist/
+```
+
+Structure: `lib/detect.js` holds the pure detection logic (shared by the extension and the tests), `content.js` handles playback, `popup.*` is the settings UI, `tools/` has the sound and icon generators and the packaging script. CI runs the tests and the packaging on every push.

@@ -1,0 +1,16 @@
+{
+  "name": "chess-review-sounds",
+  "version": "0.5.1",
+  "description": "Chrome extension: sounds for chess.com move classifications",
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "package": "node tools/package.js"
+  },
+  "author": "",
+  "license": "MIT",
+  "private": true,
+  "devDependencies": {
+    "adm-zip": "^0.6.1",
+    "jsdom": "^31.0.1"
+  }
+}
