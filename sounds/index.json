@@ -98,5 +98,35 @@
       "file": "blunder-2.mp3",
       "label": "Slide whistle fall"
     }
+  ],
+  "checkmate": [
+    {
+      "file": "checkmate-1.mp3",
+      "label": "Gong"
+    },
+    {
+      "file": "checkmate-2.mp3",
+      "label": "Victory sting"
+    }
+  ],
+  "draw": [
+    {
+      "file": "draw-1.mp3",
+      "label": "Shrug"
+    },
+    {
+      "file": "draw-2.mp3",
+      "label": "Balance"
+    }
+  ],
+  "gameover": [
+    {
+      "file": "gameover-1.mp3",
+      "label": "Curtain falls"
+    },
+    {
+      "file": "gameover-2.mp3",
+      "label": "Door thud"
+    }
   ]
 }

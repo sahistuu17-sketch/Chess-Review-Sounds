@@ -3,10 +3,9 @@
 (() => {
   const TYPES = ['brilliant', 'great', 'best', 'excellent', 'good', 'book', 'inaccuracy', 'mistake', 'miss', 'blunder'];
   const ALIASES = { greatfind: 'great', bestmove: 'best' };
-  const DEBUG = true; // set to false once everything works
-  const log = (...a) => DEBUG && console.log('[ChessSounds]', ...a);
-
-  let settings = { enabled: true, volume: 0.8, maxSeconds: 4 };
+  let settings = { enabled: true, volume: 0.8, maxSeconds: 4, debug: false };
+  // Logging is off by default; the popup has a "Debug logging" switch for troubleshooting.
+  const log = (...a) => { if (settings.debug) console.log('[ChessSounds]', ...a); };
   let sounds = {};
   let trims = {};
   let lastKey = '';
@@ -62,12 +61,29 @@
       }
     }
 
+    const end = detectEnd(sel, node);
     const type = normalize(raw);
     if (raw && !TYPES.includes(type)) {
       log('Unknown classification name (tell the developer):', raw);
-      return { nodeKey, type: null, source: 'unknown:' + raw };
+      return { nodeKey, type: null, source: 'unknown:' + raw, end, sel };
     }
-    return { nodeKey, type: raw ? type : null, source, sel };
+    return { nodeKey, type: raw ? type : null, source, end, sel };
+  }
+
+  // Game-end types, only when the selected move is the very last move of the game:
+  //   checkmate: the move ends with "#"
+  //   draw:      the result row reads 1/2-1/2 (stalemate, agreement, repetition, ... look the same here)
+  //   gameover:  decisive result without mate (resignation, timeout, abandonment look the same here)
+  function detectEnd(sel, node) {
+    if (!node) return null;
+    const plies = document.querySelectorAll('.main-line-ply');
+    if (!plies.length || plies[plies.length - 1] !== node) return null;
+    if (/#/.test(sel.textContent || '')) return 'checkmate';
+    const resultEl = document.querySelector('.game-result');
+    const result = resultEl ? (resultEl.textContent || '').trim() : '';
+    if (/1\/2|½/.test(result)) return 'draw';
+    if (/^(1-0|0-1)$/.test(result)) return 'gameover';
+    return null;
   }
 
   function play(type) {
@@ -96,10 +112,18 @@
     if (!found) return;
     // The key includes the classification, so a classification that shows up a moment
     // after the move was selected still plays, and the same state never plays twice.
-    const key = found.nodeKey + '|' + (found.type || '-');
+    // On the last move of the game a game-end sound (if you set one) replaces the move sound.
+    // Its key ignores the classification, so a late-arriving badge cannot trigger it twice.
+    const endSound = found.end && sounds[found.end];
+    const key = endSound
+      ? found.nodeKey + '|end:' + found.end
+      : found.nodeKey + '|' + (found.type || '-');
     if (key === lastKey) return;
     lastKey = key;
-    if (found.type && found.source === 'board') {
+    if (endSound) {
+      log('Move', found.nodeKey, '->', found.end, '(game end)');
+      play(found.end);
+    } else if (found.type && found.source === 'board') {
       // The board badge can lag a moment behind the selection, so only play it once it
       // has stayed the same for a short while (avoids playing the previous move's badge).
       setTimeout(() => {

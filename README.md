@@ -6,9 +6,11 @@ It only runs on analysis/review pages, never during live games.
 
 ## Features
 - One sound per move type: pick a built-in one or load your own file (stored locally, nothing is uploaded)
-- 20 built-in sounds, two per move type, plus a "Load defaults" button
+- 26 built-in sounds, two per slot, plus a "Load defaults" button
+- Game-end sounds that play on the last move of a review: checkmate, draw, and resignation/timeout
 - Per-sound start offset and length (trim the drop of a song)
-- Volume, on/off, default max length
+- Volume, on/off, default max length, reset-all button
+- Detects moves from the move list and from the badge drawn on the board, so all ten types are covered
 - Export / import sound packs as JSON
 - Language-independent detection (reads chess.com's classification CSS variable, not the UI text)
 
@@ -18,7 +20,7 @@ It only runs on analysis/review pages, never during live games.
 3. Open the popup, click **Load defaults** (or pick sounds yourself), then open a game review on chess.com
 
 ## Built-in sounds
-All 20 files in `sounds/` are synthesized from scratch by `tools/generate_sounds.py`
+All 26 files in `sounds/` are synthesized from scratch by `tools/generate_sounds.py`
 (oscillators, noise and envelopes only), so they are original and free of third-party copyright.
 Regenerate them with `python3 tools/generate_sounds.py` (needs numpy, scipy and ffmpeg).
 
@@ -44,8 +46,28 @@ Pick sounds you are allowed to use. Licenses differ per site and per file, so ch
 ## Tip
 If chess.com's own move sounds overlap with yours, turn them off in chess.com's sound settings or mute the tab (right-click the tab, Mute site).
 
+## Game-end sounds
+On the last move of a game the extension can play one of three sounds instead of the move sound:
+- **Checkmate**: the last move ends with `#`.
+- **Draw**: the result reads 1/2-1/2. Stalemate, agreement and repetition look the same on the page, so they share one slot.
+- **Resign / timeout**: a decisive result without mate. Resignation, timeout and abandonment look the same on the page, so they share one slot.
+
+If a game-end slot is empty, the normal move sound plays on the last move.
+
+## Troubleshooting
+Switch on **Debug logging** in the popup, open the browser console (F12) and filter by `ChessSounds`.
+Each move you step onto prints the detected type, for example `Move 0-27 -> blunder (from style)`.
+
+## Privacy
+Everything stays on your device. See [PRIVACY.md](PRIVACY.md).
+
+## Disclaimer
+Independent project, not affiliated with or endorsed by Chess.com.
+
 ## Roadmap
 - [x] Built-in sounds and selector
-- [ ] Checkmate / draw / resignation sounds
+- [x] Icons, license, privacy policy, store listing draft
+- [x] Checkmate / draw / resign-or-timeout sounds
+- [ ] Tell stalemate, resignation and timeout apart (the review page does not expose the reason)
 - [ ] TypeScript + React popup, tests for the detection logic
 - [ ] Chrome Web Store release

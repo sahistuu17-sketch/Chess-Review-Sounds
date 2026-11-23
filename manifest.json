@@ -1,15 +1,19 @@
 {
   "manifest_version": 3,
   "name": "Chess Review Sounds",
-  "version": "0.3.2",
-  "description": "Play your own sounds for each move type (Brilliant, Blunder, ...) while reviewing games on chess.com.",
+  "version": "0.5.0",
+  "description": "Play your own sounds for Brilliant, Blunder and every other move type while reviewing games on chess.com.",
   "permissions": [
     "storage",
     "unlimitedStorage"
   ],
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Chess Review Sounds"
+    "default_title": "Chess Review Sounds",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png"
+    }
   },
   "content_scripts": [
     {
@@ -21,5 +25,11 @@
       ],
       "run_at": "document_idle"
     }
-  ]
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "homepage_url": "https://github.com/sahistuu17-sketch/Chess-Review-Sounds"
 }

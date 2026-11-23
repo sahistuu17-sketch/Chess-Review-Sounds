@@ -25,3 +25,6 @@ li { flex-wrap: wrap; }
 
 select.builtin { background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 3px 4px; max-width: 96px; }
 .pack { flex-wrap: wrap; }
+.debug { margin: 0 0 8px; color: var(--muted); font-size: 11px; }
+#reset:hover, #reset:focus-visible { border-color: #ca3431; }
+li.divider { display: block; background: none; border: none; padding: 8px 2px 2px; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }

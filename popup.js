@@ -1,14 +1,18 @@
 const TYPES = {
   brilliant: '#26c2a3', great: '#5c8bb0', best: '#81b64c', excellent: '#96bc4b', good: '#a3b18a',
   book: '#a88865', inaccuracy: '#f7c631', mistake: '#e58f2a', miss: '#ff7769', blunder: '#ca3431',
+  checkmate: '#b8a6ff', draw: '#9aa5b1', gameover: '#6b7480',
 };
+// Labels that differ from the type name. Game-end types only fire on the last move of the game.
+const LABELS = { checkmate: 'Checkmate', draw: 'Draw', gameover: 'Resign / timeout' };
+const GAME_END = ['checkmate', 'draw', 'gameover'];
 const MAX_FILE = 3 * 1024 * 1024;
 const rows = document.getElementById('rows');
 const msg = document.getElementById('msg');
 let builtins = {}; // { type: [{ file, label }] } loaded from sounds/index.json
 let sounds = {}; // { type: { name, data } }
 let trims = {};  // { type: { start, length } }
-let settings = { enabled: true, volume: 0.8, maxSeconds: 4 };
+let settings = { enabled: true, volume: 0.8, maxSeconds: 4, debug: false };
 
 const say = (t) => { msg.textContent = t; };
 
@@ -82,9 +86,15 @@ function builtinSelect(type) {
 function render() {
   rows.innerHTML = '';
   for (const [type, color] of Object.entries(TYPES)) {
+    if (type === GAME_END[0]) {
+      const sep = document.createElement('li');
+      sep.className = 'divider';
+      sep.textContent = 'Game end (plays on the last move of the review)';
+      rows.append(sep);
+    }
     const li = document.createElement('li');
     const s = sounds[type];
-    li.innerHTML = `<span class="dot" style="background:${color}"></span><span class="name">${type}</span><span class="file">${s ? s.name : 'none'}</span>`;
+    li.innerHTML = `<span class="dot" style="background:${color}"></span><span class="name">${LABELS[type] || type}</span><span class="file">${s ? s.name : 'none'}</span>`;
     const input = document.createElement('input');
     input.type = 'file'; input.accept = 'audio/*';
     input.onchange = () => {
@@ -171,6 +181,21 @@ document.getElementById('defaults').onclick = async () => {
   say(n ? `Loaded ${n} built-in sound${n > 1 ? 's' : ''} for empty slots.` : 'All slots already have a sound.');
 };
 
+document.getElementById('reset').onclick = () => {
+  if (!confirm('Remove all chosen sounds and reset the settings?')) return;
+  sounds = {}; trims = {};
+  settings = { enabled: true, volume: 0.8, maxSeconds: 4, debug: false };
+  chrome.storage.local.clear(() => {
+    save();
+    document.getElementById('enabled').checked = true;
+    document.getElementById('volume').value = settings.volume;
+    document.getElementById('maxSeconds').value = settings.maxSeconds;
+    document.getElementById('debug').checked = false;
+    render();
+    say('Everything was reset.');
+  });
+};
+
 chrome.storage.local.get(['settings', 'sounds', 'names', 'trims'], (r) => {
   settings = { ...settings, ...(r.settings || {}) };
   trims = r.trims || {};
@@ -178,6 +203,9 @@ chrome.storage.local.get(['settings', 'sounds', 'names', 'trims'], (r) => {
   const en = document.getElementById('enabled');
   const vol = document.getElementById('volume');
   const max = document.getElementById('maxSeconds');
+  const dbg = document.getElementById('debug');
+  dbg.checked = !!settings.debug;
+  dbg.onchange = () => { settings.debug = dbg.checked; save(); };
   en.checked = settings.enabled; vol.value = settings.volume; max.value = settings.maxSeconds;
   en.onchange = () => { settings.enabled = en.checked; save(); };
   vol.oninput = () => { settings.volume = Number(vol.value); save(); };

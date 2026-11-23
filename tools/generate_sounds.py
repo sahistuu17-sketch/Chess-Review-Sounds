@@ -271,6 +271,66 @@ def blunder_2():  # slide whistle fall + thud
     return finish(place(1.4, [(0, whistle), (0.88, thud)]))
 
 
+# ---- game-end sounds ----
+def checkmate_1():  # deep gong
+    dur = 2.4
+    n = int(SR * dur)
+    body = bell(midi(43), dur, tau=1.4) * 0.9
+    sub = sine(midi(31), dur) * expdecay(n, 0.9) * 0.6
+    strike = lowpass(noise(0.08), 900) * expdecay(int(SR * 0.08), 0.02) * 0.5
+    return finish(body + sub + place(dur, [(0, strike)]))
+
+
+def checkmate_2():  # short victory sting
+    parts = []
+    for i, m in enumerate((60, 64, 67)):
+        d = 0.16
+        x = lowpass(saw(midi(m), d) + saw(midi(m) * 1.005, d), 3000)
+        parts.append((i * 0.13, x * adsr(int(SR * d), 0.005, 0.03, 0.7, 0.05) * 0.5))
+    d = 1.0
+    n = int(SR * d)
+    chord = 0
+    for m in (72, 76, 79, 84):
+        chord = chord + lowpass(saw(midi(m), d) + saw(midi(m) * 1.004, d), 3200)
+    parts.append((0.4, chord * adsr(n, 0.01, 0.1, 0.6, 0.5) * 0.3))
+    return finish(place(1.5, parts))
+
+
+def draw_1():  # a shrug: two even notes, then a lower one
+    return finish(place(1.0, [
+        (0.00, pluck(midi(67), 0.3, tau=0.15)),
+        (0.22, pluck(midi(67), 0.3, tau=0.15)),
+        (0.50, pluck(midi(60), 0.5, tau=0.25)),
+    ]))
+
+
+def draw_2():  # balanced: up and back down
+    parts = []
+    for i, m in enumerate((72, 76, 72)):
+        d = 0.32
+        x = sine(midi(m), d) + 0.3 * sine(midi(m) * 2, d)
+        parts.append((i * 0.28, x * adsr(int(SR * d), 0.01, 0.05, 0.7, 0.15) * 0.6))
+    return finish(place(1.2, parts))
+
+
+def gameover_1():  # curtain falls: slow descending minor triad
+    parts = []
+    for i, m in enumerate((64, 60, 57)):
+        d = 0.7 if i < 2 else 1.1
+        n = int(SR * d)
+        x = lowpass(saw(midi(m), d) + 0.5 * saw(midi(m) * 1.003, d), 1300)
+        parts.append((i * 0.45, x * adsr(n, 0.03, 0.1, 0.6, 0.35) * 0.6))
+    return finish(place(2.2, parts))
+
+
+def gameover_2():  # heavy door thud and a low drone
+    n = int(SR * 0.6)
+    thud = sine(np.linspace(130, 45, n), 0.6) * expdecay(n, 0.15) + 0.25 * lowpass(noise(0.6), 450) * expdecay(n, 0.04)
+    d = 0.9
+    drone = lowpass(saw(midi(40), d), 400) * adsr(int(SR * d), 0.05, 0.1, 0.5, 0.4) * 0.25
+    return finish(place(1.2, [(0, thud), (0.1, drone)]))
+
+
 SOUNDS = {
     "brilliant": [("Sparkle", brilliant_1), ("Fanfare", brilliant_2)],
     "great": [("Twin chime", great_1), ("Whoosh ding", great_2)],
@@ -282,6 +342,9 @@ SOUNDS = {
     "mistake": [("Wah wah", mistake_1), ("Buzzer", mistake_2)],
     "miss": [("Whoosh", miss_1), ("Bonk", miss_2)],
     "blunder": [("Sad trombone", blunder_1), ("Slide whistle fall", blunder_2)],
+    "checkmate": [("Gong", checkmate_1), ("Victory sting", checkmate_2)],
+    "draw": [("Shrug", draw_1), ("Balance", draw_2)],
+    "gameover": [("Curtain falls", gameover_1), ("Door thud", gameover_2)],
 }
 
 
