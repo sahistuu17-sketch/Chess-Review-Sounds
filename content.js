@@ -53,6 +53,15 @@
       if (g) { raw = g.id; source = 'icon'; }
     }
 
+    // 3) the badge drawn on the destination square of the board: <svg><g id="best">
+    //    (chess.com only colours a few classifications in the move list, but badges every move)
+    if (!raw) {
+      for (const g of document.querySelectorAll('svg g[id]')) {
+        if (g.closest('[data-node]') || g.closest('.highcharts-container')) continue;
+        if (TYPES.includes(normalize(g.id))) { raw = g.id; source = 'board'; break; }
+      }
+    }
+
     const type = normalize(raw);
     if (raw && !TYPES.includes(type)) {
       log('Unknown classification name (tell the developer):', raw);
@@ -90,7 +99,19 @@
     const key = found.nodeKey + '|' + (found.type || '-');
     if (key === lastKey) return;
     lastKey = key;
-    if (found.type) {
+    if (found.type && found.source === 'board') {
+      // The board badge can lag a moment behind the selection, so only play it once it
+      // has stayed the same for a short while (avoids playing the previous move's badge).
+      setTimeout(() => {
+        const again = detect();
+        if (!again || again.nodeKey !== found.nodeKey || again.type !== found.type) {
+          log('Ignored a badge that changed right away:', found.nodeKey, found.type);
+          return;
+        }
+        log('Move', found.nodeKey, '->', found.type, '(from board badge)');
+        play(found.type);
+      }, 150);
+    } else if (found.type) {
       log('Move', found.nodeKey, '->', found.type, '(from ' + found.source + ')');
       play(found.type);
     } else {
