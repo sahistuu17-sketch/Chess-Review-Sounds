@@ -5,6 +5,7 @@ const TYPES = {
 const MAX_FILE = 3 * 1024 * 1024;
 const rows = document.getElementById('rows');
 const msg = document.getElementById('msg');
+let builtins = {}; // { type: [{ file, label }] } loaded from sounds/index.json
 let sounds = {}; // { type: { name, data } }
 let trims = {};  // { type: { start, length } }
 let settings = { enabled: true, volume: 0.8, maxSeconds: 4 };
@@ -49,6 +50,35 @@ function numberField(label, type, key) {
   return wrap;
 }
 
+
+async function loadBuiltin(type, entry) {
+  const res = await fetch(chrome.runtime.getURL('sounds/' + entry.file));
+  const buf = await res.arrayBuffer();
+  const data = await new Promise((resolve) => {
+    const fr = new FileReader();
+    fr.onload = () => resolve(fr.result);
+    fr.readAsDataURL(new Blob([buf], { type: 'audio/mpeg' }));
+  });
+  sounds[type] = { name: 'Built-in: ' + entry.label, data };
+  delete trims[type];
+}
+
+function builtinSelect(type) {
+  const list = builtins[type] || [];
+  if (!list.length) return null;
+  const sel = document.createElement('select');
+  sel.className = 'builtin';
+  sel.title = 'Use a built-in sound';
+  sel.append(new Option('Built-in…', ''));
+  list.forEach((e, i) => sel.append(new Option(e.label, String(i))));
+  sel.onchange = async () => {
+    if (sel.value === '') return;
+    await loadBuiltin(type, list[Number(sel.value)]);
+    save(); render();
+  };
+  return sel;
+}
+
 function render() {
   rows.innerHTML = '';
   for (const [type, color] of Object.entries(TYPES)) {
@@ -68,7 +98,9 @@ function render() {
     const pick = document.createElement('button');
     pick.textContent = s ? 'Replace' : 'Choose';
     pick.onclick = () => input.click();
+    const bs = builtinSelect(type);
     li.append(input, pick);
+    if (bs) li.append(bs);
     if (s) {
       const test = document.createElement('button');
       test.textContent = 'Play';
@@ -127,6 +159,18 @@ importFile.onchange = () => {
   reader.readAsText(file);
 };
 
+
+document.getElementById('defaults').onclick = async () => {
+  let n = 0;
+  for (const type of Object.keys(TYPES)) {
+    if (sounds[type] || !(builtins[type] || []).length) continue;
+    await loadBuiltin(type, builtins[type][0]);
+    n++;
+  }
+  save(); render();
+  say(n ? `Loaded ${n} built-in sound${n > 1 ? 's' : ''} for empty slots.` : 'All slots already have a sound.');
+};
+
 chrome.storage.local.get(['settings', 'sounds', 'names', 'trims'], (r) => {
   settings = { ...settings, ...(r.settings || {}) };
   trims = r.trims || {};
@@ -138,5 +182,7 @@ chrome.storage.local.get(['settings', 'sounds', 'names', 'trims'], (r) => {
   en.onchange = () => { settings.enabled = en.checked; save(); };
   vol.oninput = () => { settings.volume = Number(vol.value); save(); };
   max.onchange = () => { settings.maxSeconds = Number(max.value); save(); };
-  render();
+  fetch(chrome.runtime.getURL('sounds/index.json'))
+    .then((r) => r.json()).catch(() => ({}))
+    .then((idx) => { builtins = idx; render(); });
 });

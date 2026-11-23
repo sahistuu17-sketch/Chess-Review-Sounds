@@ -1,10 +1,12 @@
 # Chess Review Sounds
 
-Chrome/Brave extension that plays your own sounds for each move type (Brilliant, Mistake, Blunder, ...)
-while you review games on chess.com. Only runs on analysis/review pages, never during live games.
+Chromium extension (Chrome, Brave, Edge) that plays your own sounds for each move type
+(Brilliant, Great, Mistake, Blunder, ...) while you review games on chess.com.
+It only runs on analysis/review pages, never during live games.
 
 ## Features
-- One sound per move type, chosen from your own files (stored locally, nothing is uploaded)
+- One sound per move type: pick a built-in one or load your own file (stored locally, nothing is uploaded)
+- 20 built-in sounds, two per move type, plus a "Load defaults" button
 - Per-sound start offset and length (trim the drop of a song)
 - Volume, on/off, default max length
 - Export / import sound packs as JSON
@@ -13,13 +15,37 @@ while you review games on chess.com. Only runs on analysis/review pages, never d
 ## Install (developer mode)
 1. Open `chrome://extensions` (or `brave://extensions`) and enable Developer mode
 2. Load unpacked, select this folder
-3. Open the popup, pick sounds, then open a game review on chess.com
+3. Open the popup, click **Load defaults** (or pick sounds yourself), then open a game review on chess.com
 
-## Roadmap
-- [ ] Checkmate / draw / resignation sounds
-- [ ] TypeScript + React popup, tests for the detection logic
-- [ ] Built-in royalty-free default pack
-- [ ] Chrome Web Store release
+## Built-in sounds
+All 20 files in `sounds/` are synthesized from scratch by `tools/generate_sounds.py`
+(oscillators, noise and envelopes only), so they are original and free of third-party copyright.
+Regenerate them with `python3 tools/generate_sounds.py` (needs numpy, scipy and ffmpeg).
+
+## Where to find more sounds
+Pick sounds you are allowed to use. Licenses differ per site and per file, so check the page of each sound.
+
+| Source | Notes |
+|---|---|
+| [Freesound](https://freesound.org) | Filter by license **Creative Commons 0** for sounds you can freely reuse and share. Needs a free account. |
+| [Kenney](https://kenney.nl/assets?q=audio) and [OpenGameArt](https://opengameart.org) | Game sound packs, many CC0. |
+| [Pixabay Sound Effects](https://pixabay.com/sound-effects/) | Free to use, no attribution required. Read the license before redistributing files inside a pack. |
+| [Mixkit](https://mixkit.co/free-sound-effects/) | Fine for personal use. The license does not allow redistributing the files on their own or inside a tool, so do not bundle them. |
+| [MyInstants](https://www.myinstants.com) | Large meme-sound library. Rights are unclear, so keep these for personal use on your own machine. |
+
+### Making your own clips
+- **Trim a file you have:** open it in [Audacity](https://www.audacityteam.org), or use ffmpeg:
+  `ffmpeg -i video.mp4 -vn -ss 00:00:12 -t 3 clip.mp3` (start at 12 s, keep 3 s).
+- **Record what plays on your PC** (personal use): in Audacity set the audio host to *Windows WASAPI*,
+  choose your speakers' loopback device as input, press Record while the video plays, then trim and export.
+- Keep personal clips out of the repo. The `my-sounds/` folder is already in `.gitignore`.
+- Copyrighted clips are fine for your own use, but do not publish them in a pack or in the Chrome Web Store package.
 
 ## Tip
 If chess.com's own move sounds overlap with yours, turn them off in chess.com's sound settings or mute the tab (right-click the tab, Mute site).
+
+## Roadmap
+- [x] Built-in sounds and selector
+- [ ] Checkmate / draw / resignation sounds
+- [ ] TypeScript + React popup, tests for the detection logic
+- [ ] Chrome Web Store release

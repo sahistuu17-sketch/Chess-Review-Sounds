@@ -1,0 +1,102 @@
+{
+  "brilliant": [
+    {
+      "file": "brilliant-1.mp3",
+      "label": "Sparkle"
+    },
+    {
+      "file": "brilliant-2.mp3",
+      "label": "Fanfare"
+    }
+  ],
+  "great": [
+    {
+      "file": "great-1.mp3",
+      "label": "Twin chime"
+    },
+    {
+      "file": "great-2.mp3",
+      "label": "Whoosh ding"
+    }
+  ],
+  "best": [
+    {
+      "file": "best-1.mp3",
+      "label": "Pluck"
+    },
+    {
+      "file": "best-2.mp3",
+      "label": "Marimba"
+    }
+  ],
+  "excellent": [
+    {
+      "file": "excellent-1.mp3",
+      "label": "Bell"
+    },
+    {
+      "file": "excellent-2.mp3",
+      "label": "Ping"
+    }
+  ],
+  "good": [
+    {
+      "file": "good-1.mp3",
+      "label": "Pop"
+    },
+    {
+      "file": "good-2.mp3",
+      "label": "Wood block"
+    }
+  ],
+  "book": [
+    {
+      "file": "book-1.mp3",
+      "label": "Page turn"
+    },
+    {
+      "file": "book-2.mp3",
+      "label": "Soft thud"
+    }
+  ],
+  "inaccuracy": [
+    {
+      "file": "inaccuracy-1.mp3",
+      "label": "Uh-oh"
+    },
+    {
+      "file": "inaccuracy-2.mp3",
+      "label": "Wobble"
+    }
+  ],
+  "mistake": [
+    {
+      "file": "mistake-1.mp3",
+      "label": "Wah wah"
+    },
+    {
+      "file": "mistake-2.mp3",
+      "label": "Buzzer"
+    }
+  ],
+  "miss": [
+    {
+      "file": "miss-1.mp3",
+      "label": "Whoosh"
+    },
+    {
+      "file": "miss-2.mp3",
+      "label": "Bonk"
+    }
+  ],
+  "blunder": [
+    {
+      "file": "blunder-1.mp3",
+      "label": "Sad trombone"
+    },
+    {
+      "file": "blunder-2.mp3",
+      "label": "Slide whistle fall"
+    }
+  ]
+}

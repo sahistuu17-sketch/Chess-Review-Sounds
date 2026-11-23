@@ -22,3 +22,6 @@ li { flex-wrap: wrap; }
 .trim label { display: flex; align-items: center; gap: 4px; }
 .trim input { width: 54px; background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 5px; padding: 2px 4px; }
 .pack { display: flex; gap: 8px; margin-top: 8px; }
+
+select.builtin { background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 3px 4px; max-width: 96px; }
+.pack { flex-wrap: wrap; }
